@@ -56,6 +56,22 @@ public class HyperTickClient implements ClientModInitializer {
                     int slot = Math.max(0, Math.min(8, chosen.slotIndex));
                     mc.player.getInventory().selectedSlot = slot;
                 }
+                // Execute ATTACK/USE at tick boundary to align with 20 TPS
+                if (mc != null) {
+                    switch (chosen.type) {
+                        case ATTACK -> {
+                            try {
+                                mc.doAttack();
+                            } catch (Throwable ignored) {}
+                        }
+                        case USE -> {
+                            try {
+                                mc.doItemUse();
+                            } catch (Throwable ignored) {}
+                        }
+                        default -> {}
+                    }
+                }
             });
             HyperTickRuntime.lastTickEpochMs = now;
         });
