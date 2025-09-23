@@ -20,17 +20,23 @@ public final class Resolver {
         // Normalize duplicates: keep earliest per (type, slot)
         inputs = normalize(inputs);
 
-        // If there are any SWAP inputs and priority is set, prefer the highest priority slot
-        if (cfg != null && cfg.priority_slots != null && cfg.priority_slots.length > 0) {
-            Optional<BufferedInput> prioritized = inputs.stream()
-                    .filter(b -> b.type == InputType.SWAP && b.slotIndex >= 0)
-                    .min(Comparator.comparingInt(b -> priorityIndex(cfg.priority_slots, b.slotIndex)))
-                    .filter(b -> priorityIndex(cfg.priority_slots, b.slotIndex) < Integer.MAX_VALUE);
-            if (prioritized.isPresent()) return prioritized;
+        String mode = cfg != null && cfg.mode != null ? cfg.mode : "FIRST";
+
+        // FIRST mode supports priority on SWAP
+        if ("FIRST".equalsIgnoreCase(mode)) {
+            if (cfg != null && cfg.priority_slots != null && cfg.priority_slots.length > 0) {
+                Optional<BufferedInput> prioritized = inputs.stream()
+                        .filter(b -> b.type == InputType.SWAP && b.slotIndex >= 0)
+                        .min(Comparator.comparingInt(b -> priorityIndex(cfg.priority_slots, b.slotIndex)))
+                        .filter(b -> priorityIndex(cfg.priority_slots, b.slotIndex) < Integer.MAX_VALUE);
+                if (prioritized.isPresent()) return prioritized;
+            }
+            // earliest wins
+            return inputs.stream().min(Comparator.comparingLong(b -> b.timestampMs));
         }
 
-        // Default: earliest timestamp wins
-        return inputs.stream().min(Comparator.comparingLong(b -> b.timestampMs));
+        // LAST mode: latest timestamp wins (no priority)
+        return inputs.stream().max(Comparator.comparingLong(b -> b.timestampMs));
     }
 
     private static int priorityIndex(int[] order, int slot) {
