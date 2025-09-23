@@ -25,7 +25,7 @@ public class HyperTickClient implements ClientModInitializer {
             long since = HyperTickRuntime.lastTickEpochMs;
             // capture rising edge for attack as a simple first signal
             MinecraftClient mc = client;
-            if (mc != null && mc.options != null && mc.player != null) {
+            if (mc != null && mc.options != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
                 boolean attackPressed = mc.options.attackKey.isPressed();
                 if (attackPressed && !prevAttackPressed) {
                     HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.ATTACK));
@@ -54,12 +54,12 @@ public class HyperTickClient implements ClientModInitializer {
                 HyperTick.LOGGER.info("HyperTick chose input type={} slot={} ts={}",
                         chosen.type, chosen.slotIndex, chosen.timestampMs);
                 // Apply SWAP immediately by selecting hotbar slot
-                if (chosen.type == InputType.SWAP && mc != null && mc.player != null) {
+                if (chosen.type == InputType.SWAP && mc != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
                     int slot = Math.max(0, Math.min(8, chosen.slotIndex));
                     mc.player.getInventory().selectedSlot = slot;
                 }
                 // Execute ATTACK/USE at tick boundary to align with 20 TPS
-                if (mc != null) {
+                if (mc != null && mc.currentScreen == null && mc.player != null && mc.player.isAlive()) {
                     switch (chosen.type) {
                         case ATTACK -> {
                             if (mc.options != null) {
