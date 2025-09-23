@@ -28,8 +28,8 @@ public class HyperTickClient implements ClientModInitializer {
     private static KeyBinding reloadConfigKey;
     private static KeyBinding openSettingsKey;
 
-    @Override
-    public void onInitializeClient() {
+	@Override
+	public void onInitializeClient() {
         // Register keys: reload config (R), open settings (O)
         reloadConfigKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.hypertick.reload_config",
@@ -130,11 +130,7 @@ public class HyperTickClient implements ClientModInitializer {
                 var chosen = chosenList.get(idx);
                 HyperTick.LOGGER.info("HyperTick chose input type={} slot={} ts={}",
                         chosen.type, chosen.slotIndex, chosen.timestampMs);
-                if (HyperTickRuntime.debugChatEnabled && client.player != null) {
-                    client.player.sendMessage(net.minecraft.text.Text.literal(
-                            "[HT] " + chosen.type + (chosen.slotIndex >= 0 ? (" slot=" + chosen.slotIndex) : "")
-                    ));
-                }
+                // Keep logs; chat debug is optional via UI/commands
                 // Apply SWAP immediately by selecting hotbar slot
                 if (chosen.type == InputType.SWAP && mc != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
                     int slot = Math.max(0, Math.min(8, chosen.slotIndex));
@@ -183,5 +179,5 @@ public class HyperTickClient implements ClientModInitializer {
             }
             HyperTickRuntime.lastTickEpochMs = now;
         });
-    }
+	}
 }
