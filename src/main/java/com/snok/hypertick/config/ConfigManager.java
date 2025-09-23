@@ -52,6 +52,10 @@ public final class ConfigManager {
             bw.write(GSON.toJson(cfg));
         }
     }
+
+    public static File getConfigFile() {
+        return new File(FILE_NAME);
+    }
 }
 
 

@@ -4,6 +4,7 @@ import com.snok.hypertick.input.BufferedInput;
 import com.snok.hypertick.input.InputType;
 import com.snok.hypertick.input.Resolver;
 import com.snok.hypertick.runtime.HyperTickRuntime;
+import com.snok.hypertick.config.ConfigManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
@@ -23,6 +24,14 @@ public class HyperTickClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             long now = System.currentTimeMillis();
             long since = HyperTickRuntime.lastTickEpochMs;
+            // Hot reload config if file changed
+            try {
+                var f = ConfigManager.getConfigFile();
+                if (f.exists() && f.lastModified() > since) {
+                    HyperTickRuntime.CONFIG = ConfigManager.loadOrCreateDefault();
+                    HyperTick.LOGGER.info("HyperTick config reloaded: mode={} priority={} entries", HyperTickRuntime.CONFIG.mode, HyperTickRuntime.CONFIG.priority_slots.length);
+                }
+            } catch (Throwable ignored) {}
             // capture rising edge for attack as a simple first signal
             MinecraftClient mc = client;
             if (mc != null && mc.options != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
