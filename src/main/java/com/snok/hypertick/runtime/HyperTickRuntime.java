@@ -12,6 +12,12 @@ public final class HyperTickRuntime {
 	public static ConfigManager.Config CONFIG = ConfigManager.loadOrCreateDefault();
 	public static long lastTickEpochMs = System.currentTimeMillis();
 
+	// Simple rate gating per input family to honor CONFIG.buffer_rate
+	public static long lastAttackBufferedMs = 0L;
+	public static long lastUseBufferedMs = 0L;
+	public static long lastInteractBufferedMs = 0L;
+	public static final long[] lastSwapBufferedMs = new long[9];
+
 	private HyperTickRuntime() {}
 }
 
