@@ -7,7 +7,10 @@ import com.snok.hypertick.runtime.HyperTickRuntime;
 import com.snok.hypertick.config.ConfigManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Wires a basic client tick hook that flushes inputs each 50ms tick.
@@ -21,9 +24,16 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevSwapHandsPressed = false;
     private static boolean prevPickItemPressed = false;
     private static boolean injectInteractRelease = false;
+    private static KeyBinding reloadConfigKey;
 
     @Override
     public void onInitializeClient() {
+        // Register a key to manually reload config (default: R)
+        reloadConfigKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.hypertick.reload_config",
+                GLFW.GLFW_KEY_R,
+                "key.categories.misc"
+        ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             long now = System.currentTimeMillis();
             long since = HyperTickRuntime.lastTickEpochMs;
@@ -35,6 +45,15 @@ public class HyperTickClient implements ClientModInitializer {
                     HyperTick.LOGGER.info("HyperTick config reloaded: mode={} priority={} entries", HyperTickRuntime.CONFIG.mode, HyperTickRuntime.CONFIG.priority_slots.length);
                 }
             } catch (Throwable ignored) {}
+            // Manual reload via keybind
+            if (reloadConfigKey != null && reloadConfigKey.wasPressed()) {
+                try {
+                    HyperTickRuntime.CONFIG = ConfigManager.loadOrCreateDefault();
+                    HyperTick.LOGGER.info("HyperTick config reloaded (manual): mode={} priority={} entries", HyperTickRuntime.CONFIG.mode, HyperTickRuntime.CONFIG.priority_slots.length);
+                } catch (Throwable e) {
+                    HyperTick.LOGGER.info("HyperTick config reload failed: {}", e.getMessage());
+                }
+            }
             // capture rising edge for attack as a simple first signal
             MinecraftClient mc = client;
             if (mc != null && mc.options != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
