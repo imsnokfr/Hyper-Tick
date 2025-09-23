@@ -13,6 +13,7 @@ import net.minecraft.client.MinecraftClient;
  */
 public class HyperTickClient implements ClientModInitializer {
     private static boolean prevAttackPressed = false;
+    private static final boolean[] prevHotbarPressed = new boolean[9];
 
     @Override
     public void onInitializeClient() {
@@ -27,6 +28,17 @@ public class HyperTickClient implements ClientModInitializer {
                     HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.ATTACK));
                 }
                 prevAttackPressed = attackPressed;
+
+                // Capture hotbar swaps (keys 1..9 -> slots 0..8)
+                if (mc.options.hotbarKeys != null && mc.options.hotbarKeys.length >= 9) {
+                    for (int i = 0; i < 9; i++) {
+                        boolean pressed = mc.options.hotbarKeys[i].isPressed();
+                        if (pressed && !prevHotbarPressed[i]) {
+                            HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, i, InputType.SWAP));
+                        }
+                        prevHotbarPressed[i] = pressed;
+                    }
+                }
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             Resolver.choose(inputs, HyperTickRuntime.CONFIG).ifPresent(chosen -> {
