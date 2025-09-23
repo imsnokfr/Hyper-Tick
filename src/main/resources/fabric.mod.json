@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "hyper-tick",
+	"version": "${version}",
+	"name": "Hyper Tick",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/hyper-tick/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.snok.hypertick.HyperTick"
+		],
+		"client": [
+			"com.snok.hypertick.HyperTickClient"
+		]
+	},
+	"mixins": [
+		"hyper-tick.mixins.json",
+		{
+			"config": "hyper-tick.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}

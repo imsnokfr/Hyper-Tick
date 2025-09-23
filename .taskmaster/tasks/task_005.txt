@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Tick downsampling flush (20 TPS)
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: On each client tick (50ms), resolve inputs and execute one action.
+# Details:
+Use ClientTickEvents.END_CLIENT_TICK; collectSinceLastTick; execute chosen input.
+
+# Test Strategy:
+

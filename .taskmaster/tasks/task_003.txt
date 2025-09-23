@@ -1,0 +1,25 @@
+# Task ID: 3
+# Title: Implement high-frequency input buffer (1kHz)
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Capture inputs at ~1000Hz and enqueue into rolling buffer.
+# Details:
+Thread-safe ring buffer with millisecond resolution; minimize allocations.
+
+# Test Strategy:
+
+
+# Subtasks:
+## 1. Create ring buffer structure [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 2. Time source and resolution checks [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+

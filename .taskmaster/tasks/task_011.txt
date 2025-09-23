@@ -1,0 +1,11 @@
+# Task ID: 11
+# Title: Debugging and logs
+# Status: pending
+# Dependencies: None
+# Priority: low
+# Description: Add minimal debug logging in dev/test; off in production.
+# Details:
+Optional overlay for future; start with structured logger tags.
+
+# Test Strategy:
+

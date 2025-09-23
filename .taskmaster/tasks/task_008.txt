@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Config system (config/ticklock.json)
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Expose mode, buffer_rate, and priority_slots in JSON config.
+# Details:
+Load on startup with sane defaults: mode=FIRST, buffer_rate=1000, priority_slots=[].
+
+# Test Strategy:
+

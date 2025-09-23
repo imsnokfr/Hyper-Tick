@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Project scaffolding and Fabric environment validation
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Confirm Fabric 1.21 environment, mappings, and mod metadata are correct.
+# Details:
+Validate `fabric.mod.json`, Gradle versions, and entrypoints for client/main. Ensure Java Yarn mappings align with 1.21.
+
+# Test Strategy:
+

@@ -1,0 +1,130 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Project scaffolding and Fabric environment validation",
+        "description": "Confirm Fabric 1.21 environment, mappings, and mod metadata are correct.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Validate `fabric.mod.json`, Gradle versions, and entrypoints for client/main. Ensure Java Yarn mappings align with 1.21.",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Design input buffer data model",
+        "description": "Define BufferedInput class and enums for input types.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Fields: timestamp(ms), slot(0-8), type(ATTACK, USE, SWAP, PLACE, INTERACT). Include javadoc and null-safety.",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement high-frequency input buffer (1kHz)",
+        "description": "Capture inputs at ~1000Hz and enqueue into rolling buffer.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Thread-safe ring buffer with millisecond resolution; minimize allocations.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create ring buffer structure",
+            "status": "pending"
+          },
+          {
+            "id": 2,
+            "title": "Time source and resolution checks",
+            "status": "pending"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Hook KeyBinding and input sources",
+        "description": "Intercept hotbar swaps, attack, use, interact; optional Screen.onKeyPressed.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Mixin KeyBinding events and map to BufferedInput entries with slot mapping.",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Tick downsampling flush (20 TPS)",
+        "description": "On each client tick (50ms), resolve inputs and execute one action.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Use ClientTickEvents.END_CLIENT_TICK; collectSinceLastTick; execute chosen input.",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Resolution rule: First-input-wins",
+        "description": "Default rule picks the earliest input within the tick window.",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Stable selection by minimal timestamp; deduplicate identical inputs.",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Priority mode for hotbar slots",
+        "description": "Optional priority list to favor certain slots/items.",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Allow config-defined slot order; break ties by list order, then timestamp.",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Config system (config/ticklock.json)",
+        "description": "Expose mode, buffer_rate, and priority_slots in JSON config.",
+        "status": "pending",
+        "priority": "high",
+        "details": "Load on startup with sane defaults: mode=FIRST, buffer_rate=1000, priority_slots=[].",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Combo consistency behaviors",
+        "description": "Ensure sequences (crystal→punch→totem, axe→sword, etc.) stay reliable.",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Validate chosen input execution preserves user intent without automation.",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Edge cases handling",
+        "description": "No input → no action; ignore when in GUI or dead; deduplicate repeats.",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Guard conditions in tick flush; short-circuit rules.",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Debugging and logs",
+        "description": "Add minimal debug logging in dev/test; off in production.",
+        "status": "pending",
+        "priority": "low",
+        "details": "Optional overlay for future; start with structured logger tags.",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Documentation and success criteria validation",
+        "description": "Document how to configure and verify smoother inputs.",
+        "status": "pending",
+        "priority": "low",
+        "details": "README section and simple how-to; map to PRD success criteria.",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-09-23T14:29:41.219Z",
+      "updated": "2025-09-23T14:29:41.219Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

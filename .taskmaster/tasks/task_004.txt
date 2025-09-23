@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Hook KeyBinding and input sources
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Intercept hotbar swaps, attack, use, interact; optional Screen.onKeyPressed.
+# Details:
+Mixin KeyBinding events and map to BufferedInput entries with slot mapping.
+
+# Test Strategy:
+

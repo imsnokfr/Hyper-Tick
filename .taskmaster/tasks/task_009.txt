@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: Combo consistency behaviors
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Ensure sequences (crystal→punch→totem, axe→sword, etc.) stay reliable.
+# Details:
+Validate chosen input execution preserves user intent without automation.
+
+# Test Strategy:
+

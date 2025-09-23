@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Priority mode for hotbar slots
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Optional priority list to favor certain slots/items.
+# Details:
+Allow config-defined slot order; break ties by list order, then timestamp.
+
+# Test Strategy:
+

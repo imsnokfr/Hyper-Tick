@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Design input buffer data model
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Define BufferedInput class and enums for input types.
+# Details:
+Fields: timestamp(ms), slot(0-8), type(ATTACK, USE, SWAP, PLACE, INTERACT). Include javadoc and null-safety.
+
+# Test Strategy:
+

@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Resolution rule: First-input-wins
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: Default rule picks the earliest input within the tick window.
+# Details:
+Stable selection by minimal timestamp; deduplicate identical inputs.
+
+# Test Strategy:
+

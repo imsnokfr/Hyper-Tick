@@ -1,0 +1,11 @@
+# Task ID: 10
+# Title: Edge cases handling
+# Status: pending
+# Dependencies: None
+# Priority: medium
+# Description: No input → no action; ignore when in GUI or dead; deduplicate repeats.
+# Details:
+Guard conditions in tick flush; short-circuit rules.
+
+# Test Strategy:
+
