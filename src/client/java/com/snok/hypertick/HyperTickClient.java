@@ -114,7 +114,10 @@ public class HyperTickClient implements ClientModInitializer {
                 }
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
-            Resolver.choose(inputs, HyperTickRuntime.CONFIG).ifPresent(chosen -> {
+            var chosenList = Resolver.choosePair(inputs, HyperTickRuntime.CONFIG);
+            // Execute up to two inputs: SWAP first (if present), then action
+            for (int idx = 0; idx < Math.min(2, chosenList.size()); idx++) {
+                var chosen = chosenList.get(idx);
                 HyperTick.LOGGER.info("HyperTick chose input type={} slot={} ts={}",
                         chosen.type, chosen.slotIndex, chosen.timestampMs);
                 // Apply SWAP immediately by selecting hotbar slot
@@ -147,7 +150,7 @@ public class HyperTickClient implements ClientModInitializer {
                         default -> {}
                     }
                 }
-            });
+            }
             // Release any injected key presses so they only last this tick
             if (mc != null && mc.options != null) {
                 if (injectAttackRelease) {
