@@ -18,6 +18,9 @@ public class HyperTickClient implements ClientModInitializer {
     private static final boolean[] prevHotbarPressed = new boolean[9];
     private static boolean injectAttackRelease = false;
     private static boolean injectUseRelease = false;
+    private static boolean prevSwapHandsPressed = false;
+    private static boolean prevPickItemPressed = false;
+    private static boolean injectInteractRelease = false;
 
     @Override
     public void onInitializeClient() {
@@ -46,6 +49,19 @@ public class HyperTickClient implements ClientModInitializer {
                     HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.USE));
                 }
                 prevUsePressed = usePressed;
+
+                // Capture interact-like keys: swap-hands (F) and pick-block (middle click) as INTERACT
+                boolean swapHandsPressed = mc.options.swapHandsKey.isPressed();
+                if (swapHandsPressed && !prevSwapHandsPressed) {
+                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
+                }
+                prevSwapHandsPressed = swapHandsPressed;
+
+                boolean pickItemPressed = mc.options.pickItemKey.isPressed();
+                if (pickItemPressed && !prevPickItemPressed) {
+                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
+                }
+                prevPickItemPressed = pickItemPressed;
 
                 // Capture hotbar swaps (keys 1..9 -> slots 0..8)
                 if (mc.options.hotbarKeys != null && mc.options.hotbarKeys.length >= 9) {
@@ -82,6 +98,13 @@ public class HyperTickClient implements ClientModInitializer {
                                 injectUseRelease = true;
                             }
                         }
+                        case INTERACT -> {
+                            if (mc.options != null) {
+                                // Prefer swap-hands as a benign interact; if held tool uses pick-block, it still goes through
+                                mc.options.swapHandsKey.setPressed(true);
+                                injectInteractRelease = true;
+                            }
+                        }
                         default -> {}
                     }
                 }
@@ -95,6 +118,10 @@ public class HyperTickClient implements ClientModInitializer {
                 if (injectUseRelease) {
                     mc.options.useKey.setPressed(false);
                     injectUseRelease = false;
+                }
+                if (injectInteractRelease) {
+                    mc.options.swapHandsKey.setPressed(false);
+                    injectInteractRelease = false;
                 }
             }
             HyperTickRuntime.lastTickEpochMs = now;
