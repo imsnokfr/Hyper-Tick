@@ -11,6 +11,7 @@ public final class HyperTickRuntime {
 	public static final InputBuffer INPUT_BUFFER = new InputBuffer();
 	public static ConfigManager.Config CONFIG = ConfigManager.loadOrCreateDefault();
 	public static long lastTickEpochMs = System.currentTimeMillis();
+	public static boolean debugChatEnabled = false;
 
 	// Simple rate gating per input family to honor CONFIG.buffer_rate
 	public static long lastAttackBufferedMs = 0L;
