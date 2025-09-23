@@ -15,6 +15,8 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevAttackPressed = false;
     private static boolean prevUsePressed = false;
     private static final boolean[] prevHotbarPressed = new boolean[9];
+    private static boolean injectAttackRelease = false;
+    private static boolean injectUseRelease = false;
 
     @Override
     public void onInitializeClient() {
@@ -60,19 +62,32 @@ public class HyperTickClient implements ClientModInitializer {
                 if (mc != null) {
                     switch (chosen.type) {
                         case ATTACK -> {
-                            try {
-                                mc.doAttack();
-                            } catch (Throwable ignored) {}
+                            if (mc.options != null) {
+                                mc.options.attackKey.setPressed(true);
+                                injectAttackRelease = true;
+                            }
                         }
                         case USE -> {
-                            try {
-                                mc.doItemUse();
-                            } catch (Throwable ignored) {}
+                            if (mc.options != null) {
+                                mc.options.useKey.setPressed(true);
+                                injectUseRelease = true;
+                            }
                         }
                         default -> {}
                     }
                 }
             });
+            // Release any injected key presses so they only last this tick
+            if (mc != null && mc.options != null) {
+                if (injectAttackRelease) {
+                    mc.options.attackKey.setPressed(false);
+                    injectAttackRelease = false;
+                }
+                if (injectUseRelease) {
+                    mc.options.useKey.setPressed(false);
+                    injectUseRelease = false;
+                }
+            }
             HyperTickRuntime.lastTickEpochMs = now;
         });
     }
