@@ -1,6 +1,7 @@
 package com.snok.hypertick.mixin.client;
 
 import com.snok.hypertick.HyperTick;
+import com.snok.hypertick.config.ConfigManager;
 import com.snok.hypertick.runtime.HyperTickRuntime;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -22,7 +23,7 @@ public class ChatCommandMixin {
 
         String[] parts = message.trim().split("\\s+");
         if (parts.length == 1) {
-            player.sendMessage(net.minecraft.text.Text.literal("HyperTick: /hyper debug on|off | mode FIRST|LAST | addprio <slot> | clrprio"));
+            player.sendMessage(net.minecraft.text.Text.literal("HyperTick: /hyper debug on|off | mode FIRST|LAST | buffer <hz> | addprio <slot> | clrprio | show"));
             ci.cancel();
             return;
         }
@@ -41,8 +42,24 @@ public class ChatCommandMixin {
                 if (parts.length >= 3) {
                     HyperTickRuntime.CONFIG.mode = parts[2].toUpperCase();
                     player.sendMessage(net.minecraft.text.Text.literal("HyperTick mode set to: " + HyperTickRuntime.CONFIG.mode));
+                    try { ConfigManager.save(HyperTickRuntime.CONFIG); } catch (Exception ignored) {}
                 } else {
                     player.sendMessage(net.minecraft.text.Text.literal("Usage: /hyper mode FIRST|LAST"));
+                }
+                ci.cancel();
+            }
+            case "buffer" -> {
+                if (parts.length >= 3) {
+                    try {
+                        int hz = Math.max(1, Integer.parseInt(parts[2]));
+                        HyperTickRuntime.CONFIG.buffer_rate = hz;
+                        try { ConfigManager.save(HyperTickRuntime.CONFIG); } catch (Exception ignored) {}
+                        player.sendMessage(net.minecraft.text.Text.literal("HyperTick buffer_rate set to: " + hz + " Hz"));
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(net.minecraft.text.Text.literal("Usage: /hyper buffer <hz>"));
+                    }
+                } else {
+                    player.sendMessage(net.minecraft.text.Text.literal("Usage: /hyper buffer <hz>"));
                 }
                 ci.cancel();
             }
@@ -56,6 +73,7 @@ public class ChatCommandMixin {
                         next[old.length] = slot;
                         HyperTickRuntime.CONFIG.priority_slots = next;
                         player.sendMessage(net.minecraft.text.Text.literal("HyperTick priority added: slot " + slot));
+                        try { ConfigManager.save(HyperTickRuntime.CONFIG); } catch (Exception ignored) {}
                     } catch (NumberFormatException e) {
                         player.sendMessage(net.minecraft.text.Text.literal("Usage: /hyper addprio <0-8>"));
                     }
@@ -67,6 +85,16 @@ public class ChatCommandMixin {
             case "clrprio" -> {
                 HyperTickRuntime.CONFIG.priority_slots = new int[0];
                 player.sendMessage(net.minecraft.text.Text.literal("HyperTick priority cleared"));
+                try { ConfigManager.save(HyperTickRuntime.CONFIG); } catch (Exception ignored) {}
+                ci.cancel();
+            }
+            case "show" -> {
+                player.sendMessage(net.minecraft.text.Text.literal(
+                        "HyperTick: mode=" + HyperTickRuntime.CONFIG.mode +
+                        ", buffer_rate=" + HyperTickRuntime.CONFIG.buffer_rate +
+                        ", priority_slots=" + java.util.Arrays.toString(HyperTickRuntime.CONFIG.priority_slots) +
+                        ", debugChat=" + HyperTickRuntime.debugChatEnabled
+                ));
                 ci.cancel();
             }
             default -> {

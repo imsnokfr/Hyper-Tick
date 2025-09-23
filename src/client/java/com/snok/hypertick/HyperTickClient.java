@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;
+import com.snok.hypertick.ui.SettingsScreen;
 
 /**
  * Wires a basic client tick hook that flushes inputs each 50ms tick.
@@ -25,13 +26,19 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevPickItemPressed = false;
     private static boolean injectInteractRelease = false;
     private static KeyBinding reloadConfigKey;
+    private static KeyBinding openSettingsKey;
 
     @Override
     public void onInitializeClient() {
-        // Register a key to manually reload config (default: R)
+        // Register keys: reload config (R), open settings (O)
         reloadConfigKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.hypertick.reload_config",
                 GLFW.GLFW_KEY_R,
+                "key.categories.misc"
+        ));
+        openSettingsKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.hypertick.open_settings",
+                GLFW.GLFW_KEY_O,
                 "key.categories.misc"
         ));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
@@ -53,6 +60,9 @@ public class HyperTickClient implements ClientModInitializer {
                 } catch (Throwable e) {
                     HyperTick.LOGGER.info("HyperTick config reload failed: {}", e.getMessage());
                 }
+            }
+            if (openSettingsKey != null && openSettingsKey.wasPressed()) {
+                client.setScreen(new SettingsScreen());
             }
             // capture rising edge for attack as a simple first signal
             MinecraftClient mc = client;
