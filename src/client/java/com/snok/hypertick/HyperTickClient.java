@@ -2,6 +2,7 @@ package com.snok.hypertick;
 
 import com.snok.hypertick.input.BufferedInput;
 import com.snok.hypertick.input.InputType;
+import com.snok.hypertick.input.Resolver;
 import com.snok.hypertick.runtime.HyperTickRuntime;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -28,17 +29,15 @@ public class HyperTickClient implements ClientModInitializer {
                 prevAttackPressed = attackPressed;
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
-            if (!inputs.isEmpty()) {
-                // Choose first-input-wins by timestamp
-                BufferedInput chosen = inputs.stream()
-                        .min((a, b) -> Long.compare(a.timestampMs, b.timestampMs))
-                        .orElse(null);
-                if (chosen != null) {
-                    // For now we only log the chosen input; actual execution will follow.
-                    HyperTick.LOGGER.debug("HyperTick chose input type={} slot={} ts={}",
-                            chosen.type, chosen.slotIndex, chosen.timestampMs);
+            Resolver.choose(inputs, HyperTickRuntime.CONFIG).ifPresent(chosen -> {
+                HyperTick.LOGGER.debug("HyperTick chose input type={} slot={} ts={}",
+                        chosen.type, chosen.slotIndex, chosen.timestampMs);
+                // Apply SWAP immediately by selecting hotbar slot
+                if (chosen.type == InputType.SWAP && mc != null && mc.player != null) {
+                    int slot = Math.max(0, Math.min(8, chosen.slotIndex));
+                    mc.player.getInventory().selectedSlot = slot;
                 }
-            }
+            });
             HyperTickRuntime.lastTickEpochMs = now;
         });
     }
