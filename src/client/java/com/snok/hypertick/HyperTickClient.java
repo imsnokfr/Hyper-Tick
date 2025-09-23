@@ -42,7 +42,7 @@ public class HyperTickClient implements ClientModInitializer {
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             Resolver.choose(inputs, HyperTickRuntime.CONFIG).ifPresent(chosen -> {
-                HyperTick.LOGGER.debug("HyperTick chose input type={} slot={} ts={}",
+                HyperTick.LOGGER.info("HyperTick chose input type={} slot={} ts={}",
                         chosen.type, chosen.slotIndex, chosen.timestampMs);
                 // Apply SWAP immediately by selecting hotbar slot
                 if (chosen.type == InputType.SWAP && mc != null && mc.player != null) {
