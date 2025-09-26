@@ -36,6 +36,8 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevJumpPressed = false;
     private static boolean prevSneakPressed = false;
     private static boolean prevSprintPressed = false;
+    private static boolean prevPlacePressed = false;
+    private static boolean injectPlaceRelease = false;
     
     // Camera input tracking
     private static float lastMouseX = 0.0f;
@@ -197,6 +199,18 @@ public class HyperTickClient implements ClientModInitializer {
                         HyperTickRuntime.lastBufferedMs = now;
                     }
                     prevSprintPressed = sprintPressed;
+
+                    // Block placing (right-click with blocks)
+                    boolean placePressed = mc.options.useKey.isPressed();
+                    if (placePressed && !prevPlacePressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        // Only buffer if player has a placeable item
+                        if (mc.player != null && mc.player.getMainHandStack() != null && 
+                            mc.player.getMainHandStack().getItem().toString().contains("block")) {
+                            HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.PLACE));
+                            HyperTickRuntime.lastBufferedMs = now;
+                        }
+                    }
+                    prevPlacePressed = placePressed;
                 }
 
                 // Capture camera inputs (mouse movement) - optimized for performance
@@ -300,6 +314,12 @@ public class HyperTickClient implements ClientModInitializer {
                                 mc.options.sprintKey.setPressed(true);
                             }
                         }
+                        case PLACE -> {
+                            if (mc.options != null) {
+                                mc.options.useKey.setPressed(true);
+                                injectPlaceRelease = true;
+                            }
+                        }
                         case CAMERA_PITCH, CAMERA_YAW -> {
                             // Camera inputs are handled differently - they're applied immediately
                             // The floatValue contains the delta movement
@@ -372,6 +392,28 @@ public class HyperTickClient implements ClientModInitializer {
                 if (injectInteractRelease) {
                     mc.options.swapHandsKey.setPressed(false);
                     injectInteractRelease = false;
+                }
+                if (injectPlaceRelease) {
+                    // Keep PLACE held while actively placing blocks; if finished but player still holds
+                    // physical right-click, hand control back without forcing release
+                    boolean placing = false;
+                    if (mc.player != null && mc.player.getMainHandStack() != null && 
+                        mc.player.getMainHandStack().getItem().toString().contains("block")) {
+                        placing = mc.options.useKey.isPressed();
+                    }
+                    boolean physicalHeldPlace = mc.options.useKey.isPressed();
+                    if (placing) {
+                        mc.options.useKey.setPressed(true);
+                        // keep injectPlaceRelease true to re-evaluate next tick
+                    } else {
+                        if (physicalHeldPlace) {
+                            // Stop injecting; physical input maintains continuous placing
+                            injectPlaceRelease = false;
+                        } else {
+                            mc.options.useKey.setPressed(false);
+                            injectPlaceRelease = false;
+                        }
+                    }
                 }
             }
             HyperTickRuntime.lastTickEpochMs = now;
