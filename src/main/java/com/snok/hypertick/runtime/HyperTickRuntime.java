@@ -17,6 +17,7 @@ public final class HyperTickRuntime {
 	public static long lastAttackBufferedMs = 0L;
 	public static long lastUseBufferedMs = 0L;
 	public static long lastInteractBufferedMs = 0L;
+	public static long lastBufferedMs = 0L; // For movement/camera inputs
 	public static final long[] lastSwapBufferedMs = new long[9];
 
 	private HyperTickRuntime() {}

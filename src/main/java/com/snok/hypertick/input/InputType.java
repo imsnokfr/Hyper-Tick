@@ -8,7 +8,16 @@ public enum InputType {
     USE,
     INTERACT,
     SWAP,
-    PLACE
+    PLACE,
+    MOVE_FORWARD,
+    MOVE_BACKWARD,
+    MOVE_LEFT,
+    MOVE_RIGHT,
+    JUMP,
+    SNEAK,
+    SPRINT,
+    CAMERA_PITCH,
+    CAMERA_YAW
 }
 
 

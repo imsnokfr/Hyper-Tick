@@ -14,10 +14,21 @@ public final class BufferedInput {
     /** type of input (e.g., ATTACK, USE, SWAP) */
     public final InputType type;
 
+    /** float value for camera inputs (pitch/yaw delta) */
+    public final float floatValue;
+
     public BufferedInput(long timestampMs, int slotIndex, InputType type) {
         this.timestampMs = timestampMs;
         this.slotIndex = slotIndex;
         this.type = type;
+        this.floatValue = 0.0f;
+    }
+
+    public BufferedInput(long timestampMs, int slotIndex, InputType type, float floatValue) {
+        this.timestampMs = timestampMs;
+        this.slotIndex = slotIndex;
+        this.type = type;
+        this.floatValue = floatValue;
     }
 }
 

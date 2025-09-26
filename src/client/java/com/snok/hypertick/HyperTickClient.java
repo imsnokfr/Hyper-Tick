@@ -27,6 +27,20 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean injectInteractRelease = false;
     private static KeyBinding reloadConfigKey;
     private static KeyBinding openSettingsKey;
+    
+    // Movement input tracking
+    private static boolean prevForwardPressed = false;
+    private static boolean prevBackwardPressed = false;
+    private static boolean prevLeftPressed = false;
+    private static boolean prevRightPressed = false;
+    private static boolean prevJumpPressed = false;
+    private static boolean prevSneakPressed = false;
+    private static boolean prevSprintPressed = false;
+    
+    // Camera input tracking
+    private static float lastMouseX = 0.0f;
+    private static float lastMouseY = 0.0f;
+    private static boolean cameraInputActive = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -122,6 +136,106 @@ public class HyperTickClient implements ClientModInitializer {
                         prevHotbarPressed[i] = pressed;
                     }
                 }
+
+                // Capture movement inputs
+                boolean forwardPressed = mc.options.forwardKey.isPressed();
+                if (forwardPressed && !prevForwardPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_FORWARD));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevForwardPressed = forwardPressed;
+
+                boolean backwardPressed = mc.options.backKey.isPressed();
+                if (backwardPressed && !prevBackwardPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_BACKWARD));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevBackwardPressed = backwardPressed;
+
+                boolean leftPressed = mc.options.leftKey.isPressed();
+                if (leftPressed && !prevLeftPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_LEFT));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevLeftPressed = leftPressed;
+
+                boolean rightPressed = mc.options.rightKey.isPressed();
+                if (rightPressed && !prevRightPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_RIGHT));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevRightPressed = rightPressed;
+
+                boolean jumpPressed = mc.options.jumpKey.isPressed();
+                if (jumpPressed && !prevJumpPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.JUMP));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevJumpPressed = jumpPressed;
+
+                boolean sneakPressed = mc.options.sneakKey.isPressed();
+                if (sneakPressed && !prevSneakPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.SNEAK));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevSneakPressed = sneakPressed;
+
+                boolean sprintPressed = mc.options.sprintKey.isPressed();
+                if (sprintPressed && !prevSprintPressed) {
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.SPRINT));
+                        HyperTickRuntime.lastBufferedMs = now;
+                    }
+                }
+                prevSprintPressed = sprintPressed;
+
+                // Capture camera inputs (mouse movement)
+                if (mc.mouse != null) {
+                    float mouseX = (float) mc.mouse.getX();
+                    float mouseY = (float) mc.mouse.getY();
+                    
+                    if (cameraInputActive) {
+                        float deltaX = mouseX - lastMouseX;
+                        float deltaY = mouseY - lastMouseY;
+                        
+                        // Only buffer significant mouse movement
+                        if (Math.abs(deltaX) > 0.1f || Math.abs(deltaY) > 0.1f) {
+                            long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                            if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                                if (Math.abs(deltaX) > 0.1f) {
+                                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.CAMERA_YAW, deltaX));
+                                }
+                                if (Math.abs(deltaY) > 0.1f) {
+                                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.CAMERA_PITCH, deltaY));
+                                }
+                                HyperTickRuntime.lastBufferedMs = now;
+                            }
+                        }
+                    }
+                    
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+                    cameraInputActive = true; // Enable after first frame
+                }
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             var chosenList = Resolver.choosePair(inputs, HyperTickRuntime.CONFIG);
@@ -158,6 +272,53 @@ public class HyperTickClient implements ClientModInitializer {
                                 injectInteractRelease = true;
                             }
                         }
+                        case MOVE_FORWARD -> {
+                            if (mc.options != null) {
+                                mc.options.forwardKey.setPressed(true);
+                            }
+                        }
+                        case MOVE_BACKWARD -> {
+                            if (mc.options != null) {
+                                mc.options.backKey.setPressed(true);
+                            }
+                        }
+                        case MOVE_LEFT -> {
+                            if (mc.options != null) {
+                                mc.options.leftKey.setPressed(true);
+                            }
+                        }
+                        case MOVE_RIGHT -> {
+                            if (mc.options != null) {
+                                mc.options.rightKey.setPressed(true);
+                            }
+                        }
+                        case JUMP -> {
+                            if (mc.options != null) {
+                                mc.options.jumpKey.setPressed(true);
+                            }
+                        }
+                        case SNEAK -> {
+                            if (mc.options != null) {
+                                mc.options.sneakKey.setPressed(true);
+                            }
+                        }
+                        case SPRINT -> {
+                            if (mc.options != null) {
+                                mc.options.sprintKey.setPressed(true);
+                            }
+                        }
+                        case CAMERA_PITCH, CAMERA_YAW -> {
+                            // Camera inputs are handled differently - they're applied immediately
+                            // The floatValue contains the delta movement
+                            if (mc.player != null) {
+                                float delta = chosen.floatValue;
+                                if (chosen.type == InputType.CAMERA_PITCH) {
+                                    mc.player.changeLookDirection(0, delta * 0.15f);
+                                } else if (chosen.type == InputType.CAMERA_YAW) {
+                                    mc.player.changeLookDirection(delta * 0.15f, 0);
+                                }
+                            }
+                        }
                         default -> {}
                     }
                 }
@@ -188,11 +349,21 @@ public class HyperTickClient implements ClientModInitializer {
                     }
                 }
                 if (injectUseRelease) {
-                    // Keep USE held while consuming; if finished but player still holds physical right-click,
-                    // do NOT force release (lets vanilla continue continuous eating/using)
+                    // Keep USE held while consuming/charging; if finished but player still holds physical right-click,
+                    // do NOT force release (lets vanilla continue continuous eating/using/crossbow charging)
                     boolean using = mc.player != null && mc.player.isAlive() && mc.player.isUsingItem();
                     boolean physicalHeld = mc.options.useKey.isPressed();
-                    if (using) {
+                    
+                    // Check if player is charging a crossbow or similar item
+                    boolean charging = false;
+                    if (mc.player != null && mc.player.getMainHandStack() != null) {
+                        var item = mc.player.getMainHandStack().getItem();
+                        // Crossbow charging detection
+                        charging = using && (item.toString().contains("crossbow") || 
+                                           mc.player.getItemUseTime() > 0);
+                    }
+                    
+                    if (using || charging) {
                         mc.options.useKey.setPressed(true);
                         // keep injectUseRelease true to re-evaluate next tick
                     } else {
