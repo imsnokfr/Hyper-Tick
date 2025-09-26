@@ -55,6 +55,9 @@ public class HyperTickClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             long now = System.currentTimeMillis();
             long since = HyperTickRuntime.lastTickEpochMs;
+            
+            // Update tick boundary more frequently for better responsiveness
+            HyperTickRuntime.lastTickEpochMs = now;
             // Hot reload config if file changed
             try {
                 var f = ConfigManager.getConfigFile();
@@ -80,7 +83,13 @@ public class HyperTickClient implements ClientModInitializer {
             if (mc != null && mc.options != null && mc.player != null && mc.currentScreen == null && mc.player.isAlive()) {
                 boolean attackPressed = mc.options.attackKey.isPressed();
                 if (attackPressed && !prevAttackPressed) {
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    // Immediate execution for critical actions + buffering for tick alignment
+                    if (mc.options != null) {
+                        mc.options.attackKey.setPressed(true);
+                        injectAttackRelease = true;
+                    }
+                    // Also buffer for tick-aligned execution
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
                     if (now - HyperTickRuntime.lastAttackBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.ATTACK));
                         HyperTickRuntime.lastAttackBufferedMs = now;
@@ -90,7 +99,13 @@ public class HyperTickClient implements ClientModInitializer {
 
                 boolean usePressed = mc.options.useKey.isPressed();
                 if (usePressed && !prevUsePressed) {
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    // Immediate execution for critical actions + buffering for tick alignment
+                    if (mc.options != null) {
+                        mc.options.useKey.setPressed(true);
+                        injectUseRelease = true;
+                    }
+                    // Also buffer for tick-aligned execution
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
                     if (now - HyperTickRuntime.lastUseBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.USE));
                         HyperTickRuntime.lastUseBufferedMs = now;
@@ -101,7 +116,8 @@ public class HyperTickClient implements ClientModInitializer {
                 // Capture interact-like keys: swap-hands (F) and pick-block (middle click) as INTERACT
                 boolean swapHandsPressed = mc.options.swapHandsKey.isPressed();
                 if (swapHandsPressed && !prevSwapHandsPressed) {
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    // Reduced rate limiting for faster response - minimum 1ms between inputs
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
                     if (now - HyperTickRuntime.lastInteractBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
                         HyperTickRuntime.lastInteractBufferedMs = now;
@@ -111,7 +127,8 @@ public class HyperTickClient implements ClientModInitializer {
 
                 boolean pickItemPressed = mc.options.pickItemKey.isPressed();
                 if (pickItemPressed && !prevPickItemPressed) {
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+                    // Reduced rate limiting for faster response - minimum 1ms between inputs
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
                     if (now - HyperTickRuntime.lastInteractBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
                         HyperTickRuntime.lastInteractBufferedMs = now;
@@ -134,10 +151,11 @@ public class HyperTickClient implements ClientModInitializer {
                     }
                 }
 
-                // Capture movement inputs - only buffer on rising edge for performance
-                // Use actual key bindings so it works with any key configuration
-                if (mc.options != null) {
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
+        // Capture movement inputs - only buffer on rising edge for performance
+        // Use actual key bindings so it works with any key configuration
+        if (mc.options != null) {
+            // Much faster movement input capture - 4x faster than actions
+            long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 4));
                     
                     // Forward movement
                     boolean forwardPressed = mc.options.forwardKey.isPressed();
@@ -210,8 +228,9 @@ public class HyperTickClient implements ClientModInitializer {
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             var chosenList = Resolver.choosePair(inputs, HyperTickRuntime.CONFIG);
-            // Execute up to two inputs: SWAP first (if present), then action
-            for (int idx = 0; idx < Math.min(2, chosenList.size()); idx++) {
+            
+            // Process ALL inputs for maximum responsiveness (not just 2)
+            for (int idx = 0; idx < chosenList.size(); idx++) {
                 var chosen = chosenList.get(idx);
                 HyperTick.LOGGER.info("HyperTick chose input type={} slot={} ts={}",
                         chosen.type, chosen.slotIndex, chosen.timestampMs);
@@ -368,7 +387,6 @@ public class HyperTickClient implements ClientModInitializer {
                     }
                 }
             }
-            HyperTickRuntime.lastTickEpochMs = now;
         });
 	}
 }

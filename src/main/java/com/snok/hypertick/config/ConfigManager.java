@@ -18,7 +18,7 @@ public final class ConfigManager {
 
     public static final class Config {
         public String mode = "FIRST"; // FIRST or LAST (future)
-        public int buffer_rate = 1000; // Hz
+        public int buffer_rate = 2000; // Hz - Increased for better responsiveness
         public int[] priority_slots = new int[0];
     }
 

@@ -10,15 +10,31 @@ import java.util.List;
  * Keeps the last ~1-2 seconds of inputs to cover timing jitter.
  */
 public final class InputBuffer {
-    private static final int MAX_BUFFER_SIZE = 256; // small cap to avoid growth
+    private static final int MAX_BUFFER_SIZE = 128; // Reduced for better performance
+    private static final long CLEANUP_INTERVAL_MS = 1000L; // Clean up every second
 
     private final Deque<BufferedInput> queue = new ArrayDeque<>();
+    private long lastCleanupMs = System.currentTimeMillis();
 
     public synchronized void add(BufferedInput input) {
+        // Periodic cleanup for better performance
+        long now = System.currentTimeMillis();
+        if (now - lastCleanupMs > CLEANUP_INTERVAL_MS) {
+            cleanup();
+            lastCleanupMs = now;
+        }
+        
         if (queue.size() >= MAX_BUFFER_SIZE) {
             queue.removeFirst();
         }
         queue.addLast(input);
+    }
+    
+    private void cleanup() {
+        long cutoff = System.currentTimeMillis() - 1000L; // Keep only last 1 second
+        while (!queue.isEmpty() && queue.peekFirst().timestampMs < cutoff) {
+            queue.removeFirst();
+        }
     }
 
     /**
@@ -26,16 +42,11 @@ public final class InputBuffer {
      * Caller should pass the earlier boundary (exclusive) in epoch ms.
      */
     public synchronized List<BufferedInput> collectSince(long sinceEpochMs) {
-        List<BufferedInput> out = new ArrayList<>();
+        List<BufferedInput> out = new ArrayList<>(16); // Pre-allocate for better performance
         for (BufferedInput bi : queue) {
             if (bi.timestampMs > sinceEpochMs) {
                 out.add(bi);
             }
-        }
-        // prune older entries to keep memory small
-        long cutoff = System.currentTimeMillis() - 1500L;
-        while (!queue.isEmpty() && queue.peekFirst().timestampMs < cutoff) {
-            queue.removeFirst();
         }
         return out;
     }
