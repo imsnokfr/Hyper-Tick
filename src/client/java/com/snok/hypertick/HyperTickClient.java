@@ -165,12 +165,45 @@ public class HyperTickClient implements ClientModInitializer {
             // Release any injected key presses so they only last this tick
             if (mc != null && mc.options != null) {
                 if (injectAttackRelease) {
-                    mc.options.attackKey.setPressed(false);
-                    injectAttackRelease = false;
+                    // Keep ATTACK held while actively breaking; if finished but player still holds
+                    // physical left-click, hand control back without forcing release
+                    boolean breaking = false;
+                    if (mc.interactionManager != null) {
+                        try {
+                            breaking = mc.interactionManager.isBreakingBlock();
+                        } catch (Throwable ignored) {}
+                    }
+                    boolean physicalHeldAttack = mc.options.attackKey.isPressed();
+                    if (mc.player != null && mc.player.isAlive() && breaking) {
+                        mc.options.attackKey.setPressed(true);
+                        // keep injectAttackRelease true to re-evaluate next tick
+                    } else {
+                        if (physicalHeldAttack) {
+                            // Stop injecting; physical input maintains continuous mining
+                            injectAttackRelease = false;
+                        } else {
+                            mc.options.attackKey.setPressed(false);
+                            injectAttackRelease = false;
+                        }
+                    }
                 }
                 if (injectUseRelease) {
-                    mc.options.useKey.setPressed(false);
-                    injectUseRelease = false;
+                    // Keep USE held while consuming; if finished but player still holds physical right-click,
+                    // do NOT force release (lets vanilla continue continuous eating/using)
+                    boolean using = mc.player != null && mc.player.isAlive() && mc.player.isUsingItem();
+                    boolean physicalHeld = mc.options.useKey.isPressed();
+                    if (using) {
+                        mc.options.useKey.setPressed(true);
+                        // keep injectUseRelease true to re-evaluate next tick
+                    } else {
+                        if (physicalHeld) {
+                            // Hand control back to the player's held input
+                            injectUseRelease = false;
+                        } else {
+                            mc.options.useKey.setPressed(false);
+                            injectUseRelease = false;
+                        }
+                    }
                 }
                 if (injectInteractRelease) {
                     mc.options.swapHandsKey.setPressed(false);
