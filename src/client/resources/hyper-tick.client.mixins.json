@@ -3,7 +3,8 @@
 	"package": "com.snok.hypertick.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+		"ShieldDelayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
