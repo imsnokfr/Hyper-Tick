@@ -38,11 +38,6 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevSprintPressed = false;
     private static boolean prevPlacePressed = false;
     private static boolean injectPlaceRelease = false;
-    
-    // Camera input tracking
-    private static float lastMouseX = 0.0f;
-    private static float lastMouseY = 0.0f;
-    private static boolean cameraInputActive = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -212,37 +207,6 @@ public class HyperTickClient implements ClientModInitializer {
                     }
                     prevPlacePressed = placePressed;
                 }
-
-                // Capture camera inputs (mouse movement) - optimized for performance
-                if (mc.mouse != null && cameraInputActive) {
-                    float mouseX = (float) mc.mouse.getX();
-                    float mouseY = (float) mc.mouse.getY();
-                    
-                    float deltaX = mouseX - lastMouseX;
-                    float deltaY = mouseY - lastMouseY;
-                    
-                    // Only buffer significant mouse movement to reduce noise
-                    if (Math.abs(deltaX) > 0.5f || Math.abs(deltaY) > 0.5f) {
-                        long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
-                        if (now - HyperTickRuntime.lastBufferedMs >= minDelta) {
-                            if (Math.abs(deltaX) > 0.5f) {
-                                HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.CAMERA_YAW, deltaX));
-                            }
-                            if (Math.abs(deltaY) > 0.5f) {
-                                HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.CAMERA_PITCH, deltaY));
-                            }
-                            HyperTickRuntime.lastBufferedMs = now;
-                        }
-                    }
-                    
-                    lastMouseX = mouseX;
-                    lastMouseY = mouseY;
-                } else if (mc.mouse != null && !cameraInputActive) {
-                    // Initialize camera tracking on first frame
-                    lastMouseX = (float) mc.mouse.getX();
-                    lastMouseY = (float) mc.mouse.getY();
-                    cameraInputActive = true;
-                }
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             var chosenList = Resolver.choosePair(inputs, HyperTickRuntime.CONFIG);
@@ -318,18 +282,6 @@ public class HyperTickClient implements ClientModInitializer {
                             if (mc.options != null) {
                                 mc.options.useKey.setPressed(true);
                                 injectPlaceRelease = true;
-                            }
-                        }
-                        case CAMERA_PITCH, CAMERA_YAW -> {
-                            // Camera inputs are handled differently - they're applied immediately
-                            // The floatValue contains the delta movement
-                            if (mc.player != null) {
-                                float delta = chosen.floatValue;
-                                if (chosen.type == InputType.CAMERA_PITCH) {
-                                    mc.player.changeLookDirection(0, delta * 0.15f);
-                                } else if (chosen.type == InputType.CAMERA_YAW) {
-                                    mc.player.changeLookDirection(delta * 0.15f, 0);
-                                }
                             }
                         }
                         default -> {}
