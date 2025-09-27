@@ -38,6 +38,12 @@ public class HyperTickClient implements ClientModInitializer {
     private static boolean prevSprintPressed = false;
     private static boolean prevPlacePressed = false;
     private static boolean injectPlaceRelease = false;
+    
+    // Smooth camera buffering variables
+    private static double lastMouseX = 0.0;
+    private static double lastMouseY = 0.0;
+    private static boolean cameraInputActive = false;
+    private static double cameraSensitivity = 0.3; // Smoothing factor for FPS-matched movement
 
 	@Override
 	public void onInitializeClient() {
@@ -217,6 +223,35 @@ public class HyperTickClient implements ClientModInitializer {
                     }
                     prevPlacePressed = placePressed;
                 }
+                
+                // Smooth camera input buffering - FPS-matched for fluid movement
+                if (mc.mouse != null && HyperTickRuntime.CONFIG.camera_buffering_enabled) {
+                    double currentMouseX = mc.mouse.getX();
+                    double currentMouseY = mc.mouse.getY();
+                    
+                    // Only capture if mouse has moved significantly (reduces jitter)
+                    double deltaX = currentMouseX - lastMouseX;
+                    double deltaY = currentMouseY - lastMouseY;
+                    double threshold = 0.1; // Minimum movement threshold
+                    
+                    if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+                        // Apply smoothing factor to match user's FPS feel
+                        double smoothedDeltaX = deltaX * HyperTickRuntime.CONFIG.camera_sensitivity;
+                        double smoothedDeltaY = deltaY * HyperTickRuntime.CONFIG.camera_sensitivity;
+                        
+                        // Buffer camera inputs with smoothed values
+                        if (Math.abs(smoothedDeltaX) > 0.01) {
+                            HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, (int)(smoothedDeltaX * 1000), InputType.CAMERA_YAW));
+                        }
+                        if (Math.abs(smoothedDeltaY) > 0.01) {
+                            HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, (int)(smoothedDeltaY * 1000), InputType.CAMERA_PITCH));
+                        }
+                        
+                        lastMouseX = currentMouseX;
+                        lastMouseY = currentMouseY;
+                        cameraInputActive = true;
+                    }
+                }
             }
             var inputs = HyperTickRuntime.INPUT_BUFFER.collectSince(since);
             var chosenList = Resolver.choosePair(inputs, HyperTickRuntime.CONFIG);
@@ -293,6 +328,24 @@ public class HyperTickClient implements ClientModInitializer {
                             if (mc.options != null) {
                                 mc.options.useKey.setPressed(true);
                                 injectPlaceRelease = true;
+                            }
+                        }
+                        case CAMERA_PITCH -> {
+                            // Smooth camera pitch execution - apply buffered movement
+                            if (mc.player != null && chosen.floatValue != 0) {
+                                double pitchDelta = chosen.floatValue / 1000.0; // Convert back from stored value
+                                float currentPitch = mc.player.getPitch();
+                                float newPitch = (float) Math.max(-90.0, Math.min(90.0, currentPitch - pitchDelta));
+                                mc.player.setPitch(newPitch);
+                            }
+                        }
+                        case CAMERA_YAW -> {
+                            // Smooth camera yaw execution - apply buffered movement
+                            if (mc.player != null && chosen.floatValue != 0) {
+                                double yawDelta = chosen.floatValue / 1000.0; // Convert back from stored value
+                                float currentYaw = mc.player.getYaw();
+                                float newYaw = currentYaw + (float) yawDelta;
+                                mc.player.setYaw(newYaw);
                             }
                         }
                         default -> {}

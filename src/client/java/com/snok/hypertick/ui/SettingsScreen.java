@@ -45,6 +45,33 @@ public class SettingsScreen extends Screen {
         }).dimensions(this.width / 2 + 26, y, 74, 20).build());
         y += 24;
 
+        // Camera buffering toggle
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Camera Buffering: " + (HyperTickRuntime.CONFIG.camera_buffering_enabled ? "ON" : "OFF")), b -> {
+            HyperTickRuntime.CONFIG.camera_buffering_enabled = !HyperTickRuntime.CONFIG.camera_buffering_enabled;
+            b.setMessage(Text.literal("Camera Buffering: " + (HyperTickRuntime.CONFIG.camera_buffering_enabled ? "ON" : "OFF")));
+            saveAndToast();
+        }).dimensions(this.width / 2 - 100, y, 200, 20).build());
+        y += 24;
+
+        // Camera sensitivity slider
+        this.addDrawableChild(ButtonWidget.builder(Text.literal("Camera Sensitivity: " + String.format("%.1f", HyperTickRuntime.CONFIG.camera_sensitivity)), b -> {
+            // Cycle through sensitivity values: 0.1, 0.2, 0.3, 0.5, 0.7, 1.0
+            double[] values = {0.1, 0.2, 0.3, 0.5, 0.7, 1.0};
+            double current = HyperTickRuntime.CONFIG.camera_sensitivity;
+            int index = 0;
+            for (int i = 0; i < values.length; i++) {
+                if (Math.abs(current - values[i]) < 0.05) {
+                    index = i;
+                    break;
+                }
+            }
+            index = (index + 1) % values.length;
+            HyperTickRuntime.CONFIG.camera_sensitivity = values[index];
+            b.setMessage(Text.literal("Camera Sensitivity: " + String.format("%.1f", HyperTickRuntime.CONFIG.camera_sensitivity)));
+            saveAndToast();
+        }).dimensions(this.width / 2 - 100, y, 200, 20).build());
+        y += 24;
+
         // Debug toggle
         this.addDrawableChild(ButtonWidget.builder(Text.literal("Debug Chat: " + (HyperTickRuntime.debugChatEnabled ? "ON" : "OFF")), b -> {
             HyperTickRuntime.debugChatEnabled = !HyperTickRuntime.debugChatEnabled;

@@ -15,7 +15,9 @@ public enum InputType {
     MOVE_RIGHT,
     JUMP,
     SNEAK,
-    SPRINT
+    SPRINT,
+    CAMERA_PITCH,
+    CAMERA_YAW
 }
 
 
