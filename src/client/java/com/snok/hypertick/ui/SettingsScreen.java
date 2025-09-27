@@ -55,8 +55,8 @@ public class SettingsScreen extends Screen {
 
         // Camera sensitivity slider
         this.addDrawableChild(ButtonWidget.builder(Text.literal("Camera Sensitivity: " + String.format("%.1f", HyperTickRuntime.CONFIG.camera_sensitivity)), b -> {
-            // Cycle through sensitivity values: 0.1, 0.2, 0.3, 0.5, 0.7, 0.8, 1.0
-            double[] values = {0.1, 0.2, 0.3, 0.5, 0.7, 0.8, 1.0};
+            // Cycle through sensitivity values: 0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 0.8, 1.0
+            double[] values = {0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 0.8, 1.0};
             double current = HyperTickRuntime.CONFIG.camera_sensitivity;
             int index = 0;
             for (int i = 0; i < values.length; i++) {

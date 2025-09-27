@@ -229,33 +229,20 @@ public class HyperTickClient implements ClientModInitializer {
                     double currentMouseX = mc.mouse.getX();
                     double currentMouseY = mc.mouse.getY();
                     
-                    // Capture almost all mouse movement for maximum responsiveness
+                    // Capture significant mouse movement to avoid jitter
                     double deltaX = currentMouseX - lastMouseX;
                     double deltaY = currentMouseY - lastMouseY;
-                    double threshold = 0.01; // Very low threshold for maximum input capture
+                    double threshold = 0.05; // Balanced threshold to avoid jitter while staying responsive
                     
                     if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
-                        // Apply aggressive smoothing for noticeable speed difference
+                        // Apply smooth but responsive sensitivity
                         double sensitivity = HyperTickRuntime.CONFIG.ultra_responsive_mode ? 
-                            Math.max(1.0, HyperTickRuntime.CONFIG.camera_sensitivity * 1.5) : // 50% boost in ultra mode
+                            Math.min(1.0, HyperTickRuntime.CONFIG.camera_sensitivity * 1.3) : // 30% boost in ultra mode (reduced from 50%)
                             HyperTickRuntime.CONFIG.camera_sensitivity;
                         double smoothedDeltaX = deltaX * sensitivity;
                         double smoothedDeltaY = deltaY * sensitivity;
                         
-                        // IMMEDIATE camera execution for instant response (like attack/use)
-                        if (mc.player != null) {
-                            if (Math.abs(smoothedDeltaX) > 0.001) {
-                                float currentYaw = mc.player.getYaw();
-                                mc.player.setYaw(currentYaw + (float) smoothedDeltaX);
-                            }
-                            if (Math.abs(smoothedDeltaY) > 0.001) {
-                                float currentPitch = mc.player.getPitch();
-                                float newPitch = (float) Math.max(-90.0, Math.min(90.0, currentPitch - smoothedDeltaY));
-                                mc.player.setPitch(newPitch);
-                            }
-                        }
-                        
-                        // Also buffer for tick-aligned execution (dual execution)
+                        // Buffer camera inputs for smooth tick-aligned execution (no dual execution to avoid jitter)
                         if (Math.abs(smoothedDeltaX) > 0.01) {
                             HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, (int)(smoothedDeltaX * 1000), InputType.CAMERA_YAW));
                         }
