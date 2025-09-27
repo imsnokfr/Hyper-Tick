@@ -20,8 +20,9 @@ public final class ConfigManager {
         public String mode = "FIRST"; // FIRST or LAST (future)
         public int buffer_rate = 8000; // Hz - Ultra-high performance 8kHz
         public int[] priority_slots = new int[0];
-        public double camera_sensitivity = 0.3; // Smoothing factor for camera movement (0.1-1.0)
+        public double camera_sensitivity = 0.8; // Aggressive smoothing factor for noticeable speed difference (0.1-1.0)
         public boolean camera_buffering_enabled = true; // Enable/disable camera buffering
+        public boolean ultra_responsive_mode = true; // Ultra-responsive mode for maximum speed difference
     }
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
