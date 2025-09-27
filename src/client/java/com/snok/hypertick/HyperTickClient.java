@@ -88,8 +88,8 @@ public class HyperTickClient implements ClientModInitializer {
                         mc.options.attackKey.setPressed(true);
                         injectAttackRelease = true;
                     }
-                    // Also buffer for tick-aligned execution
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
+                    // Also buffer for tick-aligned execution - true 8kHz performance
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
                     if (now - HyperTickRuntime.lastAttackBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.ATTACK));
                         HyperTickRuntime.lastAttackBufferedMs = now;
@@ -104,8 +104,8 @@ public class HyperTickClient implements ClientModInitializer {
                         mc.options.useKey.setPressed(true);
                         injectUseRelease = true;
                     }
-                    // Also buffer for tick-aligned execution
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
+                    // Also buffer for tick-aligned execution - true 8kHz performance
+                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
                     if (now - HyperTickRuntime.lastUseBufferedMs >= minDelta) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.USE));
                         HyperTickRuntime.lastUseBufferedMs = now;
@@ -116,23 +116,17 @@ public class HyperTickClient implements ClientModInitializer {
                 // Capture interact-like keys: swap-hands (F) and pick-block (middle click) as INTERACT
                 boolean swapHandsPressed = mc.options.swapHandsKey.isPressed();
                 if (swapHandsPressed && !prevSwapHandsPressed) {
-                    // Reduced rate limiting for faster response - minimum 1ms between inputs
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
-                    if (now - HyperTickRuntime.lastInteractBufferedMs >= minDelta) {
-                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
-                        HyperTickRuntime.lastInteractBufferedMs = now;
-                    }
+                    // Instant interact capture - no rate limiting
+                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
+                    HyperTickRuntime.lastInteractBufferedMs = now;
                 }
                 prevSwapHandsPressed = swapHandsPressed;
 
                 boolean pickItemPressed = mc.options.pickItemKey.isPressed();
                 if (pickItemPressed && !prevPickItemPressed) {
-                    // Reduced rate limiting for faster response - minimum 1ms between inputs
-                    long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 2));
-                    if (now - HyperTickRuntime.lastInteractBufferedMs >= minDelta) {
-                        HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
-                        HyperTickRuntime.lastInteractBufferedMs = now;
-                    }
+                    // Instant interact capture - no rate limiting
+                    HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.INTERACT));
+                    HyperTickRuntime.lastInteractBufferedMs = now;
                 }
                 prevPickItemPressed = pickItemPressed;
 
@@ -141,11 +135,9 @@ public class HyperTickClient implements ClientModInitializer {
                     for (int i = 0; i < 9; i++) {
                         boolean pressed = mc.options.hotbarKeys[i].isPressed();
                         if (pressed && !prevHotbarPressed[i]) {
-                            long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
-                            if (now - HyperTickRuntime.lastSwapBufferedMs[i] >= minDelta) {
-                                HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, i, InputType.SWAP));
-                                HyperTickRuntime.lastSwapBufferedMs[i] = now;
-                            }
+                            // Instant hotbar swaps - no rate limiting for maximum responsiveness
+                            HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, i, InputType.SWAP));
+                            HyperTickRuntime.lastSwapBufferedMs[i] = now;
                         }
                         prevHotbarPressed[i] = pressed;
                     }
@@ -154,12 +146,12 @@ public class HyperTickClient implements ClientModInitializer {
         // Capture movement inputs - only buffer on rising edge for performance
         // Use actual key bindings so it works with any key configuration
         if (mc.options != null) {
-            // Much faster movement input capture - 4x faster than actions
-            long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate * 4));
+            // Ultra-fast movement input capture - true 8kHz performance
+            long minDelta = Math.max(1, 1000L / Math.max(1, HyperTickRuntime.CONFIG.buffer_rate));
                     
-                    // Forward movement
+                    // Forward movement - instant capture
                     boolean forwardPressed = mc.options.forwardKey.isPressed();
-                    if (forwardPressed && !prevForwardPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (forwardPressed && !prevForwardPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_FORWARD));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -167,7 +159,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Backward movement
                     boolean backwardPressed = mc.options.backKey.isPressed();
-                    if (backwardPressed && !prevBackwardPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (backwardPressed && !prevBackwardPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_BACKWARD));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -175,7 +167,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Left movement
                     boolean leftPressed = mc.options.leftKey.isPressed();
-                    if (leftPressed && !prevLeftPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (leftPressed && !prevLeftPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_LEFT));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -183,7 +175,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Right movement
                     boolean rightPressed = mc.options.rightKey.isPressed();
-                    if (rightPressed && !prevRightPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (rightPressed && !prevRightPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.MOVE_RIGHT));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -191,7 +183,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Jump (works with any key binding)
                     boolean jumpPressed = mc.options.jumpKey.isPressed();
-                    if (jumpPressed && !prevJumpPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (jumpPressed && !prevJumpPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.JUMP));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -199,7 +191,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Sneak (works with any key binding)
                     boolean sneakPressed = mc.options.sneakKey.isPressed();
-                    if (sneakPressed && !prevSneakPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (sneakPressed && !prevSneakPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.SNEAK));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -207,7 +199,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Sprint (works with any key binding - including your R key!)
                     boolean sprintPressed = mc.options.sprintKey.isPressed();
-                    if (sprintPressed && !prevSprintPressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (sprintPressed && !prevSprintPressed) {
                         HyperTickRuntime.INPUT_BUFFER.add(new BufferedInput(now, -1, InputType.SPRINT));
                         HyperTickRuntime.lastBufferedMs = now;
                     }
@@ -215,7 +207,7 @@ public class HyperTickClient implements ClientModInitializer {
 
                     // Block placing (right-click with blocks)
                     boolean placePressed = mc.options.useKey.isPressed();
-                    if (placePressed && !prevPlacePressed && now - HyperTickRuntime.lastBufferedMs >= minDelta) {
+                    if (placePressed && !prevPlacePressed) {
                         // Only buffer if player has a placeable item
                         if (mc.player != null && mc.player.getMainHandStack() != null && 
                             mc.player.getMainHandStack().getItem().toString().contains("block")) {

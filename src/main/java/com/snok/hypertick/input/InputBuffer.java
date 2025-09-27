@@ -10,8 +10,8 @@ import java.util.List;
  * Keeps the last ~1-2 seconds of inputs to cover timing jitter.
  */
 public final class InputBuffer {
-    private static final int MAX_BUFFER_SIZE = 128; // Reduced for better performance
-    private static final long CLEANUP_INTERVAL_MS = 1000L; // Clean up every second
+    private static final int MAX_BUFFER_SIZE = 256; // Increased for 8kHz performance
+    private static final long CLEANUP_INTERVAL_MS = 500L; // Clean up every 500ms for 8kHz
 
     private final Deque<BufferedInput> queue = new ArrayDeque<>();
     private long lastCleanupMs = System.currentTimeMillis();
@@ -31,7 +31,7 @@ public final class InputBuffer {
     }
     
     private void cleanup() {
-        long cutoff = System.currentTimeMillis() - 1000L; // Keep only last 1 second
+        long cutoff = System.currentTimeMillis() - 500L; // Keep only last 500ms for 8kHz
         while (!queue.isEmpty() && queue.peekFirst().timestampMs < cutoff) {
             queue.removeFirst();
         }
@@ -42,7 +42,7 @@ public final class InputBuffer {
      * Caller should pass the earlier boundary (exclusive) in epoch ms.
      */
     public synchronized List<BufferedInput> collectSince(long sinceEpochMs) {
-        List<BufferedInput> out = new ArrayList<>(16); // Pre-allocate for better performance
+        List<BufferedInput> out = new ArrayList<>(32); // Pre-allocate for 8kHz performance
         for (BufferedInput bi : queue) {
             if (bi.timestampMs > sinceEpochMs) {
                 out.add(bi);
